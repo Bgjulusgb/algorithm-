@@ -241,6 +241,40 @@ ADVANCED_FEATURES = {
 }
 
 # ============================================================================
+# MATHEMATISCHE ANALYSEN
+# ============================================================================
+
+MATH_CONFIG = {
+    # Kelly Criterion
+    "use_kelly_criterion": False,     # Kelly Criterion für Position Sizing
+    "kelly_fraction": 0.5,            # Half-Kelly (konservativ)
+
+    # Signal-Filter
+    "use_signal_filters": True,       # Mathematische Signal-Filter aktivieren
+    "filter_type": "ema",             # ema, kalman, median, butterworth
+    "filter_window": 3,               # Filter-Fenster
+
+    # Performance Analytics
+    "calculate_var": True,            # Value at Risk berechnen
+    "var_confidence": 0.95,           # VaR Konfidenzniveau
+    "calculate_sharpe": True,         # Sharpe Ratio berechnen
+    "calculate_sortino": True,        # Sortino Ratio berechnen
+
+    # Monte Carlo
+    "run_monte_carlo": False,         # Monte Carlo Simulation ausführen
+    "mc_simulations": 1000,           # Anzahl Simulationen
+    "mc_days": 252,                   # Simulationszeitraum (Tage)
+
+    # Correlation Analysis
+    "analyze_correlation": True,      # Korrelations-Analyse für Portfolio
+    "max_correlation": 0.7,           # Max Korrelation zwischen Positionen
+
+    # Portfolio Optimization
+    "optimize_portfolio": False,      # Portfolio-Optimierung aktivieren
+    "optimization_method": "sharpe",  # sharpe, min_variance, max_return
+}
+
+# ============================================================================
 # VALIDIERUNG
 # ============================================================================
 

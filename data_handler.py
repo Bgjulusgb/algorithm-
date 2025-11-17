@@ -417,26 +417,29 @@ class DataHandler:
         try:
             # Volume Moving Average
             df['Volume_MA'] = df['Volume'].rolling(
-                window=STRATEGY_CONFIG.get("volume_ma_period", 20)
+                window=STRATEGY_CONFIG.get("volume_ma_period", 20),
+                min_periods=1
             ).mean()
-            
+
             # Volume Ratio (current / average)
-            df['Volume_Ratio'] = df['Volume'] / df['Volume_MA']
-            
-            # On-Balance Volume (OBV)
-            obv = [0]
-            for i in range(1, len(df)):
-                if df['Close'].iloc[i] > df['Close'].iloc[i-1]:
-                    obv.append(obv[-1] + df['Volume'].iloc[i])
-                elif df['Close'].iloc[i] < df['Close'].iloc[i-1]:
-                    obv.append(obv[-1] - df['Volume'].iloc[i])
-                else:
-                    obv.append(obv[-1])
-            
-            df['OBV'] = obv
-            
+            # Verhindere Division durch Null
+            df['Volume_Ratio'] = df['Volume'] / df['Volume_MA'].replace(0, np.nan)
+            df['Volume_Ratio'] = df['Volume_Ratio'].fillna(1.0)
+
+            # On-Balance Volume (OBV) - Vektorisierte Version
+            # Berechne Preisänderungen
+            close_diff = df['Close'].diff()
+
+            # Erstelle Volume-Multiplier basierend auf Preisrichtung
+            volume_direction = pd.Series(0, index=df.index)
+            volume_direction[close_diff > 0] = 1   # Preis steigt
+            volume_direction[close_diff < 0] = -1  # Preis fällt
+
+            # OBV ist kumulative Summe von (Volume * Direction)
+            df['OBV'] = (df['Volume'] * volume_direction).cumsum()
+
             return df
-        
+
         except Exception as e:
             logger.error(f"Fehler bei Volume-Indikator-Berechnung: {e}")
             return df

@@ -38,23 +38,24 @@ class Signal:
 
 class TradingStrategy:
     """Basis-Klasse für Trading-Strategien"""
-    
-    def __init__(self, name: str = "Base Strategy"):
+
+    def __init__(self, name: str = "Base Strategy", use_filters: bool = True):
         self.name = name
         self.min_confidence = 0.5  # Minimale Konfidenz für Trade
-    
+        self.use_filters = use_filters  # Signal-Filter aktivieren
+
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Generiert Buy/Sell Signale mit Konfidenz
-        
+
         Args:
             df: DataFrame mit Preisdaten und Indikatoren
-        
+
         Returns:
             DataFrame mit Signal-Spalten
         """
         raise NotImplementedError("Subklasse muss generate_signals implementieren")
-    
+
     def _add_signal_columns(self, df: pd.DataFrame):
         """Fügt Standard-Signal-Spalten hinzu"""
         if 'Signal' not in df.columns:
@@ -64,10 +65,50 @@ class TradingStrategy:
         if 'Position' not in df.columns:
             df['Position'] = 0
         return df
-    
+
     def _calculate_signal_change(self, df: pd.DataFrame):
         """Berechnet Positionsänderungen"""
         df['Position'] = df['Signal'].diff()
+        return df
+
+    def apply_signal_filters(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Wendet mathematische Filter auf Signale an
+
+        Args:
+            df: DataFrame mit Signalen
+
+        Returns:
+            DataFrame mit gefilterten Signalen
+        """
+        if not self.use_filters or 'Signal' not in df.columns:
+            return df
+
+        try:
+            from math_utils import SignalFilters
+
+            # Glatte Signale mit EMA Filter
+            df['Signal_Filtered'] = SignalFilters.exponential_moving_average_filter(
+                df['Signal'],
+                span=3
+            )
+
+            # Normalisiere Konfidenz mit Z-Score
+            if 'Confidence' in df.columns:
+                df['Confidence_Normalized'] = SignalFilters.z_score_normalization(
+                    df['Confidence'],
+                    window=20
+                )
+                # Clamp auf 0-1
+                df['Confidence_Normalized'] = df['Confidence_Normalized'].clip(0, 1)
+
+            logger.debug(f"Signal-Filter angewendet für {self.name}")
+
+        except ImportError:
+            logger.debug("math_utils nicht verfügbar, überspringe Filter")
+        except Exception as e:
+            logger.warning(f"Fehler beim Anwenden von Signal-Filtern: {e}")
+
         return df
 
 
@@ -441,8 +482,12 @@ class CombinedStrategy(TradingStrategy):
             else:
                 df.loc[idx, 'Signal'] = 0
                 df.loc[idx, 'Confidence'] = 0.0
-        
+
         df = self._calculate_signal_change(df)
+
+        # Wende Signal-Filter an
+        df = self.apply_signal_filters(df)
+
         return df
 
 
