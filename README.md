@@ -4,6 +4,7 @@ Ein vollautomatischer Trading Bot für algorithmisches Trading mit Yahoo Finance
 
 ## ✨ Features
 
+### Core Trading Features
 - 📊 **5 Trading-Strategien**: SMA Crossover, RSI, MACD, Combined, Mean Reversion
 - 💰 **Portfolio-Management**: Automatische Position Sizing und Diversifikation
 - 🛡️ **Risk-Management**: Stop-Loss, Take-Profit, Trailing-Stop
@@ -11,6 +12,31 @@ Ein vollautomatischer Trading Bot für algorithmisches Trading mit Yahoo Finance
 - 💾 **Daten-Caching**: Schnellere Performance durch intelligentes Caching
 - 📁 **CSV-Export**: Kompatibel mit Yahoo Finance Portfolio
 - 🧪 **Test Suite**: Umfassende Tests für alle Komponenten
+
+### Advanced Mathematical Features 🆕
+- 🎯 **Kelly Criterion**: Optimales Position Sizing basierend auf Gewinnwahrscheinlichkeit
+- 📊 **Sharpe & Sortino Ratio**: Risk-adjusted Performance-Metriken
+- ⚠️ **VaR & CVaR**: Value at Risk und Conditional VaR für Risikoanalyse
+- 🎲 **Monte Carlo Simulation**: 1000+ Portfolio-Pfad-Simulationen
+- 🔗 **Korrelationsanalyse**: Portfolio-Diversifikationsanalyse
+- 🧮 **Signal-Filter**: EMA, Kalman, Median, Butterworth Filter
+- 📐 **Portfolio-Optimierung**: Modern Portfolio Theory (Sharpe, Min Variance)
+- 📈 **30+ Performance-Metriken**: Umfassende Analytics
+
+### Visualization & Reporting 🆕
+- 📊 **Trading Charts**: Preise mit Signalen, RSI, Volume
+- 📈 **Performance Charts**: Equity Curve, Drawdown, Returns Distribution
+- 🗺️ **Correlation Heatmap**: Asset-Korrelationsmatrix
+- 🎲 **Monte Carlo Visualization**: Simulationsergebnisse mit Percentiles
+- 📋 **Umfassende Reports**: Text & HTML Backtest-Reports
+- 🎨 **Trading Dashboard**: Multi-Panel Übersichts-Dashboard
+
+### Data Quality & Validation 🆕
+- ✅ **Data Validation**: OHLCV Datenqualitätsprüfung
+- 🔍 **Error Detection**: Automatische Erkennung von Datenfehlern
+- 🧹 **Data Cleaning**: Intelligente Datenbereinigung
+- 🛡️ **Trade Validation**: Validierung aller Trading-Operationen
+- 📊 **Indicator Validation**: Überprüfung technischer Indikatoren
 
 ## 🚀 Installation
 
@@ -146,20 +172,64 @@ Bollinger Bands + RSI für Reversion-Trading
 
 ```
 algorithm-/
-├── main.py              # Hauptprogramm
-├── config.py            # Konfiguration
-├── data_handler.py      # Datenverarbeitung & Indikatoren
-├── strategy.py          # Trading-Strategien
-├── portfolio.py         # Portfolio-Management
-├── csv_manager.py       # CSV Export/Import
-├── test_trading_bot.py  # Test Suite
-├── requirements.txt     # Python-Abhängigkeiten
-└── .gitignore          # Git-Ignore
+├── main.py                    # Hauptprogramm
+├── config.py                  # Konfiguration
+├── data_handler.py            # Datenverarbeitung & Indikatoren
+├── strategy.py                # Trading-Strategien
+├── portfolio.py               # Portfolio-Management
+├── csv_manager.py             # CSV Export/Import
+├── math_utils.py              # 🆕 Mathematische Funktionen & Analysen
+├── performance_analytics.py   # 🆕 Erweiterte Performance-Analysen
+├── visualization.py           # 🆕 Chart-Generierung
+├── data_validation.py         # 🆕 Datenvalidierung & Quality Checks
+├── backtest_report.py         # 🆕 Umfassende Backtest-Reports
+├── test_trading_bot.py        # Test Suite (Core)
+├── test_math_features.py      # 🆕 Test Suite (Math Features)
+├── requirements.txt           # Python-Abhängigkeiten
+└── .gitignore                # Git-Ignore
 ```
 
-## 🔧 Behobene Bugs & Verbesserungen
+## 🔧 Changelog & Verbesserungen
 
-### Version 2.0 (Neueste)
+### Version 3.0 (LATEST) - Advanced Features 🆕
+- ✅ **Math Module**: 600+ Zeilen mathematische Funktionen
+  - Kelly Criterion für optimales Position Sizing
+  - Monte Carlo Simulation (1000+ Pfade)
+  - Sharpe, Sortino, VaR, CVaR Berechnungen
+  - Korrelations- und Kovarianzanalysen
+  - Signal-Filter (EMA, Kalman, Median, Butterworth)
+  - Portfolio-Optimierung (Modern Portfolio Theory)
+- ✅ **Performance Analytics**: 30+ erweiterte Metriken
+  - Automatische Kelly-Berechnung aus Trades
+  - Monte Carlo Integration
+  - Skewness & Kurtosis Analyse
+  - Excel-Export mit detaillierten Reports
+- ✅ **Visualization Module**: Professionelle Charts
+  - Trading-Charts mit Signalen
+  - Performance & Equity Curves
+  - Correlation Heatmaps
+  - Monte Carlo Visualisierung
+  - Multi-Panel Trading Dashboard
+- ✅ **Data Validation**: Umfassende Qualitätssicherung
+  - OHLCV Datenvalidierung
+  - Trade-Validierung
+  - Indicator-Checks
+  - Automatische Data Cleaning
+- ✅ **Backtest Reports**: Detaillierte Analysen
+  - Text & HTML Reports
+  - Symbol-basierte Performance
+  - Zeit-Analyse (Monthly, Weekly)
+  - Automatische Empfehlungen
+- ✅ **Portfolio Enhancements**:
+  - Kelly Criterion Position Sizing
+  - Erweiterte Analytics Integration
+  - Advanced Summary mit allen Metriken
+- ✅ **Strategy Improvements**:
+  - Signal-Filter Integration
+  - Z-Score Normalisierung
+  - Verbesserte Signal-Qualität
+
+### Version 2.0 - Core Improvements
 - ✅ **Kritischer Fix**: Fehlende `csv_manager.py` erstellt
 - ✅ **Performance**: Vektorisierte OBV-Berechnung (100x schneller)
 - ✅ **Bugfix**: Division-durch-Null in Volume Ratio verhindert
@@ -168,7 +238,6 @@ algorithm-/
 - ✅ **Neu**: Umfassende Test-Suite
 - ✅ **Neu**: .gitignore für sauberes Repository
 - ✅ **Neu**: requirements.txt mit allen Abhängigkeiten
-- ✅ **Verbesserung**: Erweiterte Dokumentation
 
 ## ⚠️ Wichtige Hinweise
 
