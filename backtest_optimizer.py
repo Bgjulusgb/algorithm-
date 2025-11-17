@@ -389,6 +389,9 @@ def example_backtest_function(data: pd.DataFrame, sma_short: int = 20, sma_long:
         Dict mit Metriken
     """
     try:
+        # Kopie erstellen um SettingWithCopyWarning zu vermeiden
+        data = data.copy()
+
         # Berechne SMAs
         data['SMA_Short'] = data['Close'].rolling(window=sma_short).mean()
         data['SMA_Long'] = data['Close'].rolling(window=sma_long).mean()
