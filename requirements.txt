@@ -4,9 +4,13 @@ pandas>=2.0.0
 numpy>=1.24.0
 scipy>=1.10.0
 
-# Yahoo Finance API (may have installation issues on some systems)
-# If yfinance fails to install, try: pip install yfinance --no-deps
-# Then manually install: requests lxml beautifulsoup4 html5lib frozendict platformdirs
+# Yahoo Finance API with explicit dependencies
+peewee>=3.16.0
+requests>=2.31.0
+lxml>=4.9.0
+beautifulsoup4>=4.12.0
+html5lib>=1.1
+frozendict>=2.3.0
 yfinance>=0.2.32
 
 # Plotting and Visualization
