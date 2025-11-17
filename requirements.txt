@@ -2,14 +2,16 @@
 # Core Dependencies
 pandas>=2.0.0
 numpy>=1.24.0
+scipy>=1.10.0
 
 # Yahoo Finance API (may have installation issues on some systems)
 # If yfinance fails to install, try: pip install yfinance --no-deps
 # Then manually install: requests lxml beautifulsoup4 html5lib frozendict platformdirs
 yfinance>=0.2.32
 
-# Optional for plotting
+# Plotting and Visualization
 matplotlib>=3.7.0
+seaborn>=0.12.0
 
 # Development Dependencies (optional)
 pytest>=7.4.0

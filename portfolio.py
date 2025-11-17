@@ -644,3 +644,124 @@ class Portfolio:
             print(f"  Gesamt P/L: ${stats['total_profit']:,.2f}")
         
         print("="*70 + "\n")
+
+    def calculate_kelly_position_size(
+        self,
+        symbol: str,
+        price: float,
+        kelly_fraction: float = 0.5
+    ) -> int:
+        """
+        Berechnet Position Size basierend auf Kelly Criterion
+
+        Args:
+            symbol: Aktiensymbol
+            price: Aktueller Preis
+            kelly_fraction: Kelly-Multiplikator (Standard: 0.5 = Half-Kelly)
+
+        Returns:
+            Anzahl Aktien basierend auf Kelly
+        """
+        try:
+            from math_utils import KellyCriterion
+            import pandas as pd
+
+            # Verwende historische Trades für Kelly-Berechnung
+            if not self.trades:
+                return self.calculate_position_size(symbol, price)
+
+            sell_trades = [t for t in self.trades if t['action'] == 'SELL']
+            if len(sell_trades) < 5:  # Mindestens 5 Trades für sinnvolle Berechnung
+                return self.calculate_position_size(symbol, price)
+
+            trades_df = pd.DataFrame(sell_trades)
+            kelly_pct = KellyCriterion.calculate_kelly_from_trades(trades_df, kelly_fraction)
+
+            # Berechne Position Size basierend auf Kelly
+            total_value = self.get_total_value()
+            kelly_amount = total_value * kelly_pct
+
+            # Respektiere Min/Max Limits
+            max_position = total_value * PORTFOLIO_CONFIG.get("max_position_size", 0.20)
+            min_position = total_value * PORTFOLIO_CONFIG.get("min_position_size", 0.02)
+
+            kelly_amount = max(min_position, min(kelly_amount, max_position))
+
+            # Berücksichtige Cash-Reserve
+            min_cash = self.initial_capital * PORTFOLIO_CONFIG.get("min_cash_reserve", 0.10)
+            available_cash = self.cash - min_cash
+
+            kelly_amount = min(kelly_amount, available_cash)
+
+            # Berechne Shares
+            slippage = PORTFOLIO_CONFIG.get("slippage", 0.001)
+            commission = PORTFOLIO_CONFIG.get("commission", 0)
+            effective_price = price * (1 + slippage)
+
+            shares = int((kelly_amount - commission) / effective_price)
+
+            logger.debug(f"Kelly Criterion für {symbol}: {kelly_pct*100:.1f}% → {shares} Aktien")
+
+            return max(0, shares)
+
+        except ImportError:
+            logger.warning("math_utils nicht verfügbar, verwende Standard Position Sizing")
+            return self.calculate_position_size(symbol, price)
+        except Exception as e:
+            logger.error(f"Fehler bei Kelly-Berechnung: {e}")
+            return self.calculate_position_size(symbol, price)
+
+    def get_advanced_analytics(self) -> Dict:
+        """
+        Gibt erweiterte Portfolio-Analysen zurück
+
+        Returns:
+            Dictionary mit erweiterten Metriken
+        """
+        try:
+            from performance_analytics import PerformanceAnalytics
+
+            analytics = PerformanceAnalytics(self.trades, self.initial_capital)
+            return analytics.calculate_comprehensive_metrics()
+
+        except ImportError:
+            logger.warning("performance_analytics nicht verfügbar")
+            return self.get_performance_stats()
+        except Exception as e:
+            logger.error(f"Fehler bei erweiterten Analysen: {e}")
+            return self.get_performance_stats()
+
+    def print_advanced_summary(self):
+        """Gibt erweiterte Portfolio-Zusammenfassung aus"""
+        try:
+            from performance_analytics import PerformanceAnalytics
+
+            analytics = PerformanceAnalytics(self.trades, self.initial_capital)
+            report = analytics.generate_performance_report()
+            print(report)
+
+        except ImportError:
+            logger.warning("performance_analytics nicht verfügbar, verwende Standard-Summary")
+            self.print_summary()
+        except Exception as e:
+            logger.error(f"Fehler bei erweiterten Report: {e}")
+            self.print_summary()
+
+    def export_performance_report(self, filename: str = "performance_report.xlsx"):
+        """
+        Exportiert erweiterten Performance-Report
+
+        Args:
+            filename: Dateiname für Export
+        """
+        try:
+            from performance_analytics import PerformanceAnalytics
+
+            analytics = PerformanceAnalytics(self.trades, self.initial_capital)
+            analytics.export_to_excel(filename)
+            logger.info(f"Performance-Report exportiert nach: {filename}")
+
+        except ImportError:
+            logger.warning("performance_analytics nicht verfügbar")
+        except Exception as e:
+            logger.error(f"Fehler beim Export: {e}")

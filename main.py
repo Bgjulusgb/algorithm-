@@ -313,13 +313,16 @@ class TradingBot:
         logger.info("\n" + "="*70)
         logger.info("FINALE ZUSAMMENFASSUNG")
         logger.info("="*70)
-        
-        # Portfolio Summary
-        self.portfolio.print_summary()
-        
+
+        # Portfolio Summary (erweitert wenn verfügbar)
+        try:
+            self.portfolio.print_advanced_summary()
+        except Exception:
+            self.portfolio.print_summary()
+
         # CSV Summary
         self.csv_manager.print_summary()
-        
+
         # Exportiere für Yahoo Finance
         try:
             output_file = self.csv_manager.export_for_yahoo()
@@ -327,7 +330,13 @@ class TradingBot:
             logger.info("💡 Diese Datei kann direkt bei Yahoo Finance hochgeladen werden!")
         except Exception as e:
             logger.error(f"Fehler beim CSV-Export: {e}")
-        
+
+        # Erweiterte Performance-Analytics
+        try:
+            self.portfolio.export_performance_report("performance_report.xlsx")
+        except Exception as e:
+            logger.debug(f"Excel-Export nicht verfügbar: {e}")
+
         # Speichere Portfolio-Status
         try:
             self.portfolio.save_state()
