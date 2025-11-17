@@ -118,7 +118,10 @@ class CSVManager:
 
     def export_for_yahoo(self, output_file: Optional[str] = None) -> str:
         """
-        Exportiert Trades im Yahoo Finance Format
+        Exportiert Trades im Yahoo Finance Portfolio Format
+
+        Yahoo Finance erwartet folgendes CSV Format:
+        Symbol,Trade Date,Action,Quantity,Price,Commission,Notes
 
         Args:
             output_file: Ausgabedatei (optional)
@@ -131,30 +134,78 @@ class CSVManager:
         try:
             if not self.trades:
                 logger.warning("Keine Trades zum Exportieren")
+                # Erstelle leere Datei mit Header
+                with open(output_file, 'w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['Symbol', 'Trade Date', 'Action', 'Quantity', 'Price', 'Commission', 'Notes'])
                 return output_file
 
             # Konvertiere zu DataFrame
             df = pd.DataFrame(self.trades)
 
-            # Yahoo Finance Format
-            df_yahoo = df.rename(columns={
-                'Trade Date': 'Trade Date',
-                'Action': 'Action',
-                'Symbol': 'Symbol',
-                'Quantity': 'Quantity',
-                'Price': 'Price',
-                'Commission': 'Commission',
-                'Notes': 'Notes'
-            })
+            # Yahoo Finance Format (exakte Spaltenreihenfolge wichtig!)
+            df_yahoo = df[['Symbol', 'Trade Date', 'Action', 'Quantity', 'Price', 'Commission', 'Notes']]
+
+            # Validiere Daten
+            df_yahoo = df_yahoo.dropna(subset=['Symbol', 'Trade Date', 'Action', 'Quantity', 'Price'])
+
+            # Konvertiere Quantity zu Integer
+            df_yahoo['Quantity'] = df_yahoo['Quantity'].astype(int)
+
+            # Stelle sicher dass Price und Commission numerisch sind
+            df_yahoo['Price'] = pd.to_numeric(df_yahoo['Price'], errors='coerce')
+            df_yahoo['Commission'] = pd.to_numeric(df_yahoo['Commission'], errors='coerce').fillna(0.0)
 
             # Exportiere
             df_yahoo.to_csv(output_file, index=False)
-            logger.info(f"✅ Trades exportiert nach: {output_file}")
+            logger.info(f"✅ {len(df_yahoo)} Trades exportiert nach: {output_file}")
 
             return output_file
 
         except Exception as e:
             logger.error(f"Fehler beim Export: {e}")
+            return output_file
+
+    def export_current_holdings(self, positions: Dict, output_file: Optional[str] = None) -> str:
+        """
+        Exportiert aktuelle Holdings (Positionen) für Yahoo Finance
+
+        Args:
+            positions: Dict mit aktuellen Positionen {symbol: position_obj}
+            output_file: Ausgabedatei (optional)
+
+        Returns:
+            Pfad zur exportierten Datei
+        """
+        output_file = output_file or "yahoo_finance_holdings.csv"
+
+        try:
+            if not positions:
+                logger.warning("Keine Positionen zum Exportieren")
+                return output_file
+
+            holdings_data = []
+            for symbol, position in positions.items():
+                holdings_data.append({
+                    'Symbol': symbol,
+                    'Quantity': position.shares,
+                    'Purchase Price': position.entry_price,
+                    'Current Price': position.current_price,
+                    'Purchase Date': position.entry_date.strftime('%m/%d/%Y') if hasattr(position.entry_date, 'strftime') else str(position.entry_date),
+                    'Cost Basis': position.shares * position.entry_price,
+                    'Current Value': position.shares * position.current_price,
+                    'Gain/Loss': (position.current_price - position.entry_price) * position.shares,
+                    'Gain/Loss %': ((position.current_price / position.entry_price) - 1) * 100 if position.entry_price > 0 else 0
+                })
+
+            df = pd.DataFrame(holdings_data)
+            df.to_csv(output_file, index=False)
+            logger.info(f"✅ {len(df)} Holdings exportiert nach: {output_file}")
+
+            return output_file
+
+        except Exception as e:
+            logger.error(f"Fehler beim Holdings Export: {e}")
             return output_file
 
     def print_summary(self):
