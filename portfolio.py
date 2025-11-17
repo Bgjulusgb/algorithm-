@@ -747,19 +747,23 @@ class Portfolio:
             logger.error(f"Fehler bei erweiterten Report: {e}")
             self.print_summary()
 
-    def export_performance_report(self, filename: str = "performance_report.xlsx"):
+    def export_performance_report(self, base_filename: str = "performance_report"):
         """
-        Exportiert erweiterten Performance-Report
+        Exportiert erweiterten Performance-Report als CSV-Dateien (kein Excel!)
 
         Args:
-            filename: Dateiname für Export
+            base_filename: Basis-Dateiname für CSV-Exporte (ohne .csv)
         """
         try:
             from performance_analytics import PerformanceAnalytics
 
             analytics = PerformanceAnalytics(self.trades, self.initial_capital)
-            analytics.export_to_excel(filename)
-            logger.info(f"Performance-Report exportiert nach: {filename}")
+            exported_files = analytics.export_to_csv(base_filename)
+
+            if exported_files:
+                logger.info(f"📊 Performance-Report exportiert: {len(exported_files)} CSV-Dateien")
+            else:
+                logger.warning("⚠️ Keine Performance-Daten zum Exportieren")
 
         except ImportError:
             logger.warning("performance_analytics nicht verfügbar")

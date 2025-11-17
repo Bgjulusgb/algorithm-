@@ -345,39 +345,51 @@ class PerformanceAnalytics:
 
         return "\n".join(report)
 
-    def export_to_excel(self, filename: str = "performance_report.xlsx"):
+    def export_to_csv(self, base_filename: str = "performance_report"):
         """
-        Exportiert Performance-Analyse nach Excel
+        Exportiert Performance-Analyse als CSV-Dateien (kein Excel!)
 
         Args:
-            filename: Dateiname
+            base_filename: Basis-Dateiname (ohne .csv)
         """
         try:
-            with pd.ExcelWriter(filename, engine='openpyxl') as writer:
-                # Trades
-                if len(self.trades_df) > 0:
-                    self.trades_df.to_excel(writer, sheet_name='Trades')
+            exported_files = []
 
-                # Metrics
-                metrics = self.calculate_comprehensive_metrics()
-                if metrics:
-                    metrics_df = pd.DataFrame([metrics]).T
-                    metrics_df.columns = ['Value']
-                    metrics_df.to_excel(writer, sheet_name='Metrics')
+            # Trades Export
+            if len(self.trades_df) > 0:
+                trades_file = f"{base_filename}_trades.csv"
+                self.trades_df.to_csv(trades_file, index=False)
+                exported_files.append(trades_file)
+                logger.info(f"✅ Trades exportiert nach: {trades_file}")
 
-                # Monte Carlo (wenn genug Daten)
-                sell_trades = self.trades_df[self.trades_df['action'] == 'SELL']
-                if len(sell_trades) >= 5:
-                    mc_results = self.run_monte_carlo_simulation(num_simulations=100)
-                    if 'error' not in mc_results:
-                        mc_df = pd.DataFrame([mc_results]).T
-                        mc_df.columns = ['Value']
-                        mc_df.to_excel(writer, sheet_name='Monte Carlo')
+            # Metrics Export
+            metrics = self.calculate_comprehensive_metrics()
+            if metrics:
+                metrics_df = pd.DataFrame([metrics]).T
+                metrics_df.columns = ['Value']
+                metrics_file = f"{base_filename}_metrics.csv"
+                metrics_df.to_csv(metrics_file)
+                exported_files.append(metrics_file)
+                logger.info(f"✅ Metrics exportiert nach: {metrics_file}")
 
-            logger.info(f"Performance-Report exportiert nach: {filename}")
+            # Monte Carlo Export (wenn genug Daten)
+            sell_trades = self.trades_df[self.trades_df['action'] == 'SELL']
+            if len(sell_trades) >= 5:
+                mc_results = self.run_monte_carlo_simulation(num_simulations=100)
+                if 'error' not in mc_results:
+                    mc_df = pd.DataFrame([mc_results]).T
+                    mc_df.columns = ['Value']
+                    mc_file = f"{base_filename}_monte_carlo.csv"
+                    mc_df.to_csv(mc_file)
+                    exported_files.append(mc_file)
+                    logger.info(f"✅ Monte Carlo exportiert nach: {mc_file}")
+
+            logger.info(f"📊 Performance-Report exportiert: {len(exported_files)} CSV-Dateien")
+            return exported_files
 
         except Exception as e:
-            logger.error(f"Fehler beim Excel-Export: {e}")
+            logger.error(f"Fehler beim CSV-Export: {e}")
+            return []
 
 
 class PortfolioCorrelationAnalysis:

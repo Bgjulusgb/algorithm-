@@ -331,11 +331,11 @@ class TradingBot:
         except Exception as e:
             logger.error(f"Fehler beim CSV-Export: {e}")
 
-        # Erweiterte Performance-Analytics
+        # Erweiterte Performance-Analytics (CSV-Export)
         try:
-            self.portfolio.export_performance_report("performance_report.xlsx")
+            self.portfolio.export_performance_report("performance_report")
         except Exception as e:
-            logger.debug(f"Excel-Export nicht verfügbar: {e}")
+            logger.debug(f"Performance-Report-Export nicht verfügbar: {e}")
 
         # Speichere Portfolio-Status
         try:
