@@ -312,12 +312,13 @@ class Portfolio:
         if max_buy_value < min_position_value:
             return 0
         
-        # Berechne Shares (mit Slippage)
+        # Berechne Shares (mit Slippage und Commission)
         slippage = PORTFOLIO_CONFIG.get("slippage", 0.001)
         commission = PORTFOLIO_CONFIG.get("commission", 0)
-        effective_price = price * (1 + slippage) + commission
-        
-        shares = int(max_buy_value / effective_price)
+        effective_price = price * (1 + slippage)
+
+        # Berücksichtige Commission in der Berechnung
+        shares = int((max_buy_value - commission) / effective_price)
         return max(0, shares)
     
     def buy(
@@ -506,9 +507,18 @@ class Portfolio:
         
         # Führe Verkäufe aus
         for item in positions_to_close:
-            symbol, price = item[0], item[1]
-            reason = item[2]
+            if len(item) < 3:
+                logger.warning(f"Ungültiges Item in positions_to_close: {item}")
+                continue
+
+            symbol, price, reason = item[0], item[1], item[2]
             shares = item[3] if len(item) > 3 else None
+
+            # Prüfe ob Position noch existiert (könnte bereits verkauft worden sein)
+            if symbol not in self.positions:
+                logger.debug(f"Position {symbol} existiert nicht mehr, überspringe")
+                continue
+
             self.sell(symbol, price, shares=shares, reason=reason)
     
     def get_position(self, symbol: str) -> Optional[Position]:

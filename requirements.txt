@@ -1,0 +1,19 @@
+# Trading Bot Requirements
+# Core Dependencies
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Yahoo Finance API (may have installation issues on some systems)
+# If yfinance fails to install, try: pip install yfinance --no-deps
+# Then manually install: requests lxml beautifulsoup4 html5lib frozendict platformdirs
+yfinance>=0.2.32
+
+# Optional for plotting
+matplotlib>=3.7.0
+
+# Development Dependencies (optional)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Note: If you encounter issues with peewee during yfinance installation,
+# you may need to use an older version of yfinance or install manually
