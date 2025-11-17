@@ -22,6 +22,7 @@ try:
     from multi_timeframe import MultiTimeframeAnalyzer
     from advanced_orders import OrderManager, AdvancedRiskManager, OrderSide
     from execution_simulator import ExecutionSimulator, MarketCondition
+    from enhanced_signal_generator import EnhancedSignalGenerator
     HAS_ADVANCED = True
 except ImportError:
     HAS_ADVANCED = False
@@ -168,19 +169,21 @@ class LiveMarketScanner:
 class SignalGenerator:
     """
     Signal Generator
-    Generiert Trading-Signale aus Marktdaten
+    Generiert Trading-Signale aus Marktdaten mit 50+ verschiedenen Signalen
     """
 
-    def __init__(self, use_ml: bool = False, use_advanced: bool = True):
+    def __init__(self, use_ml: bool = False, use_advanced: bool = True, use_enhanced: bool = True):
         """
         Initialisiert Signal Generator
 
         Args:
             use_ml: ML Models verwenden
             use_advanced: Advanced Indicators & Patterns verwenden
+            use_enhanced: Enhanced Signal Generator mit 50+ Signalen verwenden
         """
         self.use_ml = use_ml and HAS_ML
         self.use_advanced = use_advanced and HAS_ADVANCED
+        self.use_enhanced = use_enhanced and HAS_ADVANCED
 
         if self.use_ml:
             logger.info("🤖 ML Signal Generation aktiviert")
@@ -188,9 +191,13 @@ class SignalGenerator:
         if self.use_advanced:
             logger.info("📊 Advanced Technical Analysis aktiviert")
 
+        if self.use_enhanced and HAS_ADVANCED:
+            self.enhanced_gen = EnhancedSignalGenerator()
+            logger.info("🎯 Enhanced Signal Generator aktiviert (50+ Signale)")
+
     def generate_signal(self, symbol: str, market_data: Dict) -> Dict:
         """
-        Generiert Trading-Signal für Symbol
+        Generiert Trading-Signal für Symbol mit 50+ verschiedenen Signalen
 
         Args:
             symbol: Symbol
@@ -201,6 +208,40 @@ class SignalGenerator:
         """
         signals = []
         confidences = []
+        all_details = []
+
+        # NEUE: Enhanced Signal Generation (50+ Signale)
+        if self.use_enhanced and 'analyzed_timeframes' in market_data:
+            try:
+                # Nutze die Daten aus dem primären Timeframe
+                timeframes = market_data['analyzed_timeframes']
+                if timeframes:
+                    # Nehme den ersten/längsten Timeframe
+                    primary_tf = list(timeframes.keys())[0]
+                    tf_data = timeframes[primary_tf]
+
+                    if 'data' in tf_data:
+                        df = tf_data['data']
+
+                        # Generiere Enhanced Signals
+                        enhanced_result = self.enhanced_gen.generate_comprehensive_signals(df, len(df)-1)
+
+                        if 'error' not in enhanced_result:
+                            # Nutze Enhanced Signals
+                            signal_map = {'BUY': 1, 'SELL': -1, 'HOLD': 0}
+                            signals.append(signal_map.get(enhanced_result['aggregated_signal'], 0))
+                            confidences.append(enhanced_result['total_confidence'])
+
+                            all_details.append(f"Enhanced: {enhanced_result['num_signals']} Signale "
+                                             f"({enhanced_result['bullish_count']} Bullish, "
+                                             f"{enhanced_result['bearish_count']} Bearish)")
+
+                            logger.info(f"   📊 Enhanced Signals: {enhanced_result['num_signals']} total "
+                                      f"→ {enhanced_result['aggregated_signal']} "
+                                      f"({enhanced_result['total_confidence']*100:.0f}%)")
+
+            except Exception as e:
+                logger.warning(f"Fehler bei Enhanced Signal Generation: {e}")
 
         # 1. Multi-Timeframe Signal
         if 'recommendation' in market_data:
@@ -209,15 +250,19 @@ class SignalGenerator:
             if 'STRONG BUY' in recommendation:
                 signals.append(1)
                 confidences.append(0.9)
+                all_details.append(f"MTF: {recommendation}")
             elif 'BUY' in recommendation:
                 signals.append(1)
                 confidences.append(0.7)
+                all_details.append(f"MTF: {recommendation}")
             elif 'STRONG SELL' in recommendation:
                 signals.append(-1)
                 confidences.append(0.9)
+                all_details.append(f"MTF: {recommendation}")
             elif 'SELL' in recommendation:
                 signals.append(-1)
                 confidences.append(0.7)
+                all_details.append(f"MTF: {recommendation}")
             else:
                 signals.append(0)
                 confidences.append(0.5)
@@ -229,15 +274,19 @@ class SignalGenerator:
             if 'STRONG_BULLISH' in alignment:
                 signals.append(1)
                 confidences.append(0.85)
+                all_details.append(f"Trend: {alignment}")
             elif 'BULLISH' in alignment:
                 signals.append(1)
                 confidences.append(0.65)
+                all_details.append(f"Trend: {alignment}")
             elif 'STRONG_BEARISH' in alignment:
                 signals.append(-1)
                 confidences.append(0.85)
+                all_details.append(f"Trend: {alignment}")
             elif 'BEARISH' in alignment:
                 signals.append(-1)
                 confidences.append(0.65)
+                all_details.append(f"Trend: {alignment}")
 
         # 3. Confluence Signal
         if 'confluence' in market_data:
@@ -246,15 +295,19 @@ class SignalGenerator:
             if 'STRONG_BUY' in confluence:
                 signals.append(1)
                 confidences.append(0.9)
+                all_details.append(f"Confluence: {confluence}")
             elif 'BUY' in confluence:
                 signals.append(1)
                 confidences.append(0.7)
+                all_details.append(f"Confluence: {confluence}")
             elif 'STRONG_SELL' in confluence:
                 signals.append(-1)
                 confidences.append(0.9)
+                all_details.append(f"Confluence: {confluence}")
             elif 'SELL' in confluence:
                 signals.append(-1)
                 confidences.append(0.7)
+                all_details.append(f"Confluence: {confluence}")
 
         # Aggregate Signals
         if signals:
@@ -280,6 +333,7 @@ class SignalGenerator:
                 'confidence': avg_confidence,
                 'raw_score': avg_signal,
                 'num_signals': len(signals),
+                'details': all_details,
                 'timestamp': datetime.now()
             }
         else:
@@ -290,6 +344,7 @@ class SignalGenerator:
                 'confidence': 0.0,
                 'raw_score': 0.0,
                 'num_signals': 0,
+                'details': [],
                 'timestamp': datetime.now()
             }
 
